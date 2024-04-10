@@ -26,10 +26,12 @@ To deploy this service you will need the following prerequisites:
 
 Prior to deployment of the service the database migrations have to be run with [`sqlx-cli`](https://github.com/launchbadge/sqlx/tree/main/sqlx-cli) component of [`sqlx`](https://github.com/launchbadge/sqlx):
 
+You can run a Dockerized version of the database through `docker compose up`, or run a local instance should you prefer. The command below is based on the Docker compose file.
+
 ```
 $ cd ./storage
-$ env DATABASE_URL=postgres://mycreds@myhost/mydb sqlx database create
-$ env DATABASE_URL=postgres://mycreds@myhost/mydb sqlx migrate run
+$ env DATABASE_URL=postgres://root:password@localhost:5432/withdrawal-finalizer-db sqlx database create
+$ env DATABASE_URL=postgres://root:password@localhost:5432/withdrawal-finalizer-db sqlx migrate run
 ```
 ### Configuration
 
@@ -46,7 +48,7 @@ Deployment is done by deploying a dockerized image of the service.
 | `CONTRACTS_WITHDRAWAL_FINALIZER_CONTRACT` | Address of the Withdrawal Finalizer contract ** |
 | `API_WEB3_JSON_RPC_WS_URL` | Address of the zkSync Era WebSocket RPC endpoint |
 | `API_WEB3_JSON_RPC_HTTP_URL` | Address of the zkSync Era HTTP RPC endpoint |
-| `DATABSE_URL` | The url of PostgreSQL database the service stores its state into |
+| `DATABASE_URL` | The url of PostgreSQL database the service stores its state into |
 | `GAS_LIMIT` | The gas limit of a single withdrawal finalization within the batch of withdrawals finalized in a call to `finalizeWithdrawals` in WithdrawalFinalizerContract |
 | `BATCH_FINALIZATION_GAS_LIMIT` | The gas limit of the finalization of the whole batch in a call to `finalizeWithdrawals` in Withdrawal Finalizer Contract |
 | `WITHDRAWAL_FINALIZER_ACCOUNT_PRIVATE_KEY` | The private key of the account that is going to be submit finalization transactions |
@@ -63,6 +65,7 @@ The configuration structure describing the service config can be found in [`conf
 
 ## Deploying the finalizer smart contract
 
+### Alternative 1: Hardhat
 The finalizer smart contract needs to reference the addresses of the diamond proxy contract and l1 erc20 proxy contract.
 You also need to know the key of the account you want to use to deploy the finalizer contract.
 
@@ -83,6 +86,16 @@ CONTRACTS_WITHDRAWAL_FINALIZER_ADDRESS=0x712516e61C8B383dF4A63CFe83d7701Bce54B03
 
 And so you know the address of the deployed contract.
 
+### Alternative 2: Forge
+
+A possibly faster alternative for non-local deployment could be to use `forge`, as part of the Foundry toolkit. Deploying should be straightforward with
+
+```
+$ forge create --rpc-url $ETH_CLIENT_HTTP_URL --constructor-args <ZKSYNC_MAILBOX_ADDR> <ERC20_BRIDGE_ADDR> --private-key $WITHDRAWAL_FINALIZER_ACCOUNT_PRIVATE_KEY contracts/WithdrawalFinalizer.sol:WithdrawalFinalizer
+Deployer: <address>
+Deployed to: <contract address>
+Transaction hash: <tx hash>
+```
 
 ## License
 

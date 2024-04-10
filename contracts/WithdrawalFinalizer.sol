@@ -6,11 +6,15 @@ import "@matterlabs/zksync-contracts/l1/contracts/bridge/interfaces/IL1Bridge.so
 import "@matterlabs/zksync-contracts/l1/contracts/zksync/interfaces/IMailbox.sol";
 import "@matterlabs/zksync-contracts/l1/contracts/common/libraries/UncheckedMath.sol";
 
-
 contract WithdrawalFinalizer {
     using UncheckedMath for uint256;
-    IMailbox constant ZKSYNC_MAILBOX = IMailbox($(ZKSYNC_ADDRESS));
-    IL1Bridge constant ERC20_BRIDGE = IL1Bridge($(ERC20_BRIDGE_ADDRESS));
+    IMailbox immutable ZKSYNC_MAILBOX; 
+    IL1Bridge immutable ERC20_BRIDGE;
+
+    constructor(address _mailboxAddr, address _bridgeAddr) {
+        ZKSYNC_MAILBOX = IMailbox(_mailboxAddr);
+        ERC20_BRIDGE = IL1Bridge(_bridgeAddr);
+    }
 
     struct RequestFinalizeWithdrawal {
         uint256 _l2BlockNumber;
